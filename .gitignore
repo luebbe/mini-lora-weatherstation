@@ -1,3 +1,4 @@
 .pio
 .vscode
 src/ttnparams.h
+pio.map
