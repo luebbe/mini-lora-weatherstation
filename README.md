@@ -4,6 +4,9 @@
 
 Thanks to the built in battery management and solar charging functionality of this board, as well as ultra low power consumption, we're finally able to put LoRa-connected sensors almost anywhere we want! I started out with this board building a simple weather station based on a BME280 sensor to record temperature, humidity and barometric pressure and test how long a battery will last using this board.
 
+⚠️**This is a fork of https://github.com/chrisys/mini-lora-weatherstation, which I am currently porting to PlatformIO.
+Since I haven't received the hardware yet, it is untested and only compiles on PlatformIO. I'll update this README on the go.**
+
 **For a more deep dive into the build, check out my blog posts:**
 * [Part 1: Build a simple solar-powered weather station with LoRa & The Things Network](https://www.balena.io/blog/build-a-simple-solar-powered-weather-station-with-lora-the-things-network/)
 * [Part 2: Receive and store LoRa sensor data from TTN using a Raspberry Pi](https://www.balena.io/blog/receive-and-store-lora-sensor-data-from-ttn-using-a-raspberry-pi/)
