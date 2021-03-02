@@ -1,11 +1,13 @@
 #include <LoRaWan_APP.h>
 #include <Arduino.h>
-#include <Seeed_BME280.h>
+#include <Adafruit_BME280.h>
+#include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include "ttnparams.h"
 
-bool ENABLE_SERIAL = false;       // enable serial debug output here if required
-uint32_t appTxDutyCycle = 300000; // the frequency of readings, in milliseconds(set 300s)
+bool ENABLE_SERIAL = false;       // Enable serial debug output here if required
+uint8_t i2cAddress = 0x76;        // Check whether your BME280 is on 0x76 or 0x77
+uint32_t appTxDutyCycle = 300000; // The frequency of readings, in milliseconds (set 300s)
 
 uint16_t userChannelsMask[6] = {0x00FF, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 LoRaMacRegion_t loraWanRegion = ACTIVE_REGION;
@@ -18,9 +20,9 @@ uint8_t appPort = 2;
 uint8_t confirmedNbTrials = 4;
 
 int temperature, humidity, batteryVoltage, batteryLevel;
-long pressure;
+long pressure; // Pressure needs three bytes unless you give up one or two decimal places
 
-BME280 bme280;
+Adafruit_BME280 bme280;
 
 static void readData()
 {
@@ -29,20 +31,25 @@ static void readData()
   digitalWrite(Vext, LOW);
   delay(500);
 
-  if (!bme280.init())
+  if (!bme280.begin(i2cAddress))
   {
     if (ENABLE_SERIAL)
     {
       Serial.println("BME280 sensor not found!");
     }
+    return;
   }
 
   // This delay is required to allow the sensor time to init
   delay(500);
 
-  temperature = bme280.getTemperature() * 100;
-  humidity = bme280.getHumidity();
-  pressure = bme280.getPressure();
+  // Temperature offset to compensate for wrong measurements. The Adafruit BME280 library 
+  // takes this offset into consideration when it calculates the other values.
+  // bme280.setTemperatureCompensation(1.23f);
+
+  temperature = bme280.readTemperature() * 100; // In order to have two decimal places stored in the integer
+  humidity = bme280.readHumidity();
+  pressure = bme280.readPressure();
 
   Wire.end();
 
@@ -50,7 +57,7 @@ static void readData()
   digitalWrite(Vext, HIGH);
 
   batteryVoltage = getBatteryVoltage();
-  batteryLevel = (BoardGetBatteryLevel() / 254) * 100;
+  batteryLevel = BoardGetBatteryLevel() * 100 / 254;
 
   if (ENABLE_SERIAL)
   {
@@ -93,12 +100,12 @@ static void prepareTxFrame(uint8_t port)
 
 void setup()
 {
-  boardInitMcu();
-
   if (ENABLE_SERIAL)
   {
     Serial.begin(SERIAL_SPEED);
   }
+
+  boardInitMcu();
 
   // Read Data once in order to check if the Sensor is active and working
   readData();
